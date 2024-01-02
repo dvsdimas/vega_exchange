@@ -1,5 +1,7 @@
 package com.vega.exchange;
 
+import com.vega.exchange.services.StaticInstrumentsRegister;
+import com.vega.exchange.services.InstrumentsRegister;
 import com.vega.exchange.services.Quoting;
 import com.vega.exchange.services.StaticQuoting;
 
@@ -13,17 +15,20 @@ public class Main {
 
         final var quoting = initQuoting();
 
+        final var register = initInstrumentsRegister();
+
 
         awaitTermination();
     }
 
     private static Quoting initQuoting() {
-
-
         // todo
-
-
         return new StaticQuoting(Map.of());
+    }
+
+    private static InstrumentsRegister initInstrumentsRegister() {
+        // todo
+        return new StaticInstrumentsRegister(Map.of());
     }
 
     private static void awaitTermination() {

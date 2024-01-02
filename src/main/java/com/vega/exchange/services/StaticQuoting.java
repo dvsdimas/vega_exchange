@@ -16,13 +16,13 @@ public class StaticQuoting implements Quoting {
     }
 
     @Override
-    public Quote getQuote(UUID instrument) {
+    public Quote getQuote(UUID instrumentId) {
 
-        if(!prices.containsKey(instrument)) {
-            throw new IllegalArgumentException("Unsupported instrument %s".formatted(instrument));
+        if(!prices.containsKey(instrumentId)) {
+            throw new IllegalArgumentException("Unsupported instrument %s".formatted(instrumentId));
         }
 
-        return prices.get(instrument);
+        return prices.get(instrumentId);
     }
 
 }

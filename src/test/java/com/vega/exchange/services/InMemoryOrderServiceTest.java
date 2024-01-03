@@ -106,4 +106,56 @@ public class InMemoryOrderServiceTest implements Helper {
         assertThat(result2.orElseThrow()).isEqualTo(expectedResult);
     }
 
+    @Test
+    void should_not_match_buy_market_order_with_sell_market_order_if_amount_not_the_same() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var register = anInstrumentsRegister(List.of(instrument));
+        var quote = new Quote(instrument.id, 19L, now());
+        var quoting = aQuoting(Map.of(instrument.id, quote));
+        var orderService = new InMemoryOrderService(register, quoting);
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 31L);
+
+        //when
+        var result1 = orderService.add(sellMarketOrder);
+
+        //then
+        assertThat(result1).isEmpty();
+
+        //when
+        var result2 = orderService.add(buyMarketOrder);
+
+        //then
+        assertThat(result2).isEmpty();
+    }
+
+    @Test
+    void should_not_match_buy_market_order_with_sell_market_order_if_instrument_not_the_same() {
+        //given
+        var instrument1 = aRegularInstrument(randomUUID());
+        var instrument2 = aRegularInstrument(randomUUID());
+        var register = anInstrumentsRegister(List.of(instrument1, instrument2));
+        var quote1 = new Quote(instrument1.id, 19L, now());
+        var quote2 = new Quote(instrument2.id, 23L, now());
+        var quoting = aQuoting(
+                Map.of(instrument1.id, quote1,
+                        instrument2.id, quote2));
+        var orderService = new InMemoryOrderService(register, quoting);
+        var buyMarketOrder = aBuyMarketOrder(instrument1.id, 30L);
+        var sellMarketOrder = aSellMarketOrder(instrument2.id, 30L);
+
+        //when
+        var result1 = orderService.add(sellMarketOrder);
+
+        //then
+        assertThat(result1).isEmpty();
+
+        //when
+        var result2 = orderService.add(buyMarketOrder);
+
+        //then
+        assertThat(result2).isEmpty();
+    }
+
 }

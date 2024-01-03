@@ -2,7 +2,7 @@ package com.vega.exchange.services;
 
 import com.vega.exchange.helper.Helper;
 import com.vega.exchange.instruments.Quote;
-import com.vega.exchange.orders.ExecutionResult;
+import com.vega.exchange.orders.MatchResult;
 import com.vega.exchange.trades.Trade;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ import static java.util.UUID.randomUUID;
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class InMemoryOrderServiceTest implements Helper {
+public class InMemoryOrdersMatcherTest implements Helper {
 
     @Test
     void should_not_match_buy_market_order_in_case_if_empty() {
@@ -25,7 +25,7 @@ public class InMemoryOrderServiceTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 26L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
 
         //when
@@ -42,7 +42,7 @@ public class InMemoryOrderServiceTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 26L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
 
         //when
@@ -59,10 +59,10 @@ public class InMemoryOrderServiceTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 19L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
-        var expectedResult = new ExecutionResult(
+        var expectedResult = new MatchResult(
                 buyMarketOrder,
                 Set.of(new Trade(buyMarketOrder, sellMarketOrder, quote)));
 
@@ -87,10 +87,10 @@ public class InMemoryOrderServiceTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 33L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 19L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 19L);
-        var expectedResult = new ExecutionResult(
+        var expectedResult = new MatchResult(
                 sellMarketOrder,
                 Set.of(new Trade(buyMarketOrder, sellMarketOrder, quote)));
 
@@ -115,7 +115,7 @@ public class InMemoryOrderServiceTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 19L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 31L);
 
@@ -143,7 +143,7 @@ public class InMemoryOrderServiceTest implements Helper {
         var quoting = aQuoting(
                 Map.of(instrument1.id, quote1,
                         instrument2.id, quote2));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument1.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument2.id, 30L);
 
@@ -176,7 +176,7 @@ public class InMemoryOrderServiceTest implements Helper {
                         instrument1.id, quote1,
                         instrument2.id, quote2,
                         instrument3.id, quote3));
-        var orderService = new InMemoryOrderService(register, quoting);
+        var orderService = new InMemoryOrdersMatcher(register, quoting);
         var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L);
         var sellMarketOrder1 = aSellMarketOrder(instrument1.id, 30L);
         var sellMarketOrder2 = aSellMarketOrder(instrument2.id, 30L);

@@ -8,12 +8,12 @@ import java.util.Set;
 import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 
-public class ExecutionResult {
+public class MatchResult {
 
     public final Order order;
     public final Set<Trade> trades;
 
-    public ExecutionResult(Order order, Set<Trade> trades) {
+    public MatchResult(Order order, Set<Trade> trades) {
         this.order = requireNonNull(order);
         this.trades = requireNonNull(trades);
         if(trades.isEmpty()) {
@@ -25,7 +25,7 @@ public class ExecutionResult {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final var that = (ExecutionResult) o;
+        final var that = (MatchResult) o;
         return Objects.equals(order, that.order) &&
                 Objects.equals(trades, that.trades);
     }

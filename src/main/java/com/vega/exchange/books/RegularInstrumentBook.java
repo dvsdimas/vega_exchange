@@ -15,7 +15,7 @@ import static com.vega.exchange.orders.OrderType.SELL;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 
-public class RegularInstrumentBook implements InstrumentBook{
+public class RegularInstrumentBook implements InstrumentBook {
 
     private final Instrument instrument;
     private final Map<UUID, Order> buyBook = new ConcurrentHashMap<>();

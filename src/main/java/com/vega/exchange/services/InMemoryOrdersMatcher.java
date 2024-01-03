@@ -3,7 +3,7 @@ package com.vega.exchange.services;
 import com.vega.exchange.books.InstrumentBook;
 import com.vega.exchange.books.RegularInstrumentBook;
 import com.vega.exchange.instruments.CompositeInstrument;
-import com.vega.exchange.orders.ExecutionResult;
+import com.vega.exchange.orders.MatchResult;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.trades.Trade;
 
@@ -21,19 +21,19 @@ import static java.util.UUID.randomUUID;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toSet;
 
-public class InMemoryOrderService implements OrderService {
+public class InMemoryOrdersMatcher implements OrdersMatcher {
 
     private final InstrumentsRegister register;
     private final Quoting quoting;
     private final Map<UUID, InstrumentBook> instrumentBooks = new ConcurrentHashMap<>();
 
-    public InMemoryOrderService(InstrumentsRegister register, Quoting quoting) {
+    public InMemoryOrdersMatcher(InstrumentsRegister register, Quoting quoting) {
         this.register = requireNonNull(register);
         this.quoting = requireNonNull(quoting);
     }
 
     @Override
-    public Optional<ExecutionResult> add(Order order) {
+    public Optional<MatchResult> add(Order order) {
 
         final var instrument = register.getInstrument(order.instrumentId);
 
@@ -42,7 +42,7 @@ public class InMemoryOrderService implements OrderService {
             final var maybeTrade = addRegularOrder(order);
 
             if(maybeTrade.isPresent()) {
-                return Optional.of(new ExecutionResult(order, Set.of(maybeTrade.orElseThrow())));
+                return Optional.of(new MatchResult(order, Set.of(maybeTrade.orElseThrow())));
             } else {
                 return empty();
             }
@@ -60,7 +60,7 @@ public class InMemoryOrderService implements OrderService {
                 .collect(toSet());
 
         if(results.size() == trades.size()) {
-            return Optional.of(new ExecutionResult(order, trades));
+            return Optional.of(new MatchResult(order, trades));
         }
 
 
@@ -106,6 +106,8 @@ public class InMemoryOrderService implements OrderService {
         }
 
         return instrumentBooks.get(order.instrumentId).cancel(order);
+
+//        todo handle composite case
     }
 
 }

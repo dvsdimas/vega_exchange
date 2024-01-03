@@ -1,10 +1,13 @@
 package com.vega.exchange.services;
 
+import com.vega.exchange.orders.ExecutionResult;
 import com.vega.exchange.orders.Order;
+
+import java.util.Optional;
 
 public interface OrderService {
 
-    void add(Order order);
+    Optional<ExecutionResult> add(Order order);
 
     boolean cancel(Order order);
 

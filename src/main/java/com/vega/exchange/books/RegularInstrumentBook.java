@@ -43,7 +43,11 @@ public class RegularInstrumentBook implements InstrumentBook{
                 .findAny();
 
         if(maybeMatch.isPresent()) {
-            removeFromBook(maybeMatch.orElseThrow());
+
+            if(!removeFromBook(maybeMatch.orElseThrow())) {
+                return add(order, quote);
+            }
+
             return Optional.of(
                     new Trade(
                             order.type == BUY ? order : maybeMatch.orElseThrow(),
@@ -70,8 +74,8 @@ public class RegularInstrumentBook implements InstrumentBook{
         getBook(order).put(order.id, order);
     }
 
-    private void removeFromBook(Order order) {
-        getBook(order).remove(order.id, order);
+    private boolean removeFromBook(Order order) {
+        return getBook(order).remove(order.id, order);
     }
 
     private Map<UUID, Order> getBook(Order order) {

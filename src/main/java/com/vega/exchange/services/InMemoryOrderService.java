@@ -2,15 +2,18 @@ package com.vega.exchange.services;
 
 import com.vega.exchange.books.InstrumentBook;
 import com.vega.exchange.books.RegularInstrumentBook;
+import com.vega.exchange.orders.ExecutionResult;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.trades.Trade;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.empty;
 
 public class InMemoryOrderService implements OrderService {
 
@@ -24,13 +27,28 @@ public class InMemoryOrderService implements OrderService {
     }
 
     @Override
-    public void add(Order order) {
+    public Optional<ExecutionResult> add(Order order) {
 
         final var instrument = register.getInstrument(order.instrumentId);
 
+        if(instrument.tradable()) {
+
+            final var maybeTrade = addRegularOrder(order);
+
+            if(maybeTrade.isPresent()) {
+                return Optional.of(new ExecutionResult(order, Set.of(maybeTrade.orElseThrow())));
+            } else {
+                return empty();
+            }
+
+        }
+
+
+        // todo handle composite orders   !!!!!!!
 
 
 
+        return empty();
     }
 
     private Optional<Trade> addRegularOrder(Order order) {

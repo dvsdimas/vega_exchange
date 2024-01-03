@@ -233,4 +233,123 @@ public class RegularInstrumentBookTest implements Helper {
         assertThat(result).contains(new Trade(buyLimitOrder, sellLimitOrder, quote));
     }
 
+    @Test
+    void should_produce_trade_on_match_for_buy_limit_order_against_sell_market_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 25L, now());
+        book.add(sellMarketOrder, quote);
+
+        //when
+        var result = book.add(buyLimitOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyLimitOrder, sellMarketOrder, quote));
+    }
+
+    @Test
+    void should_produce_trade_on_match_for_sell_limit_order_against_buy_market_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
+        var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 25L, now());
+        book.add(buyMarketOrder, quote);
+
+        //when
+        var result = book.add(sellLimitOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyMarketOrder, sellLimitOrder, quote));
+    }
+
+    @Test
+    void should_fail_on_match_for_buy_market_order_against_sell_market_order_if_balance_not_match() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 21L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 12L, now());
+        book.add(sellMarketOrder, quote);
+
+        //when
+        var result = book.add(buyMarketOrder, quote);
+
+        //then
+        assertThat(result).isEmpty();
+        assertThat(book.contains(buyMarketOrder)).isTrue();
+        assertThat(book.contains(sellMarketOrder)).isTrue();
+    }
+
+    @Test
+    void should_fail_trade_on_match_for_sell_market_order_against_buy_market_order_if_balance_not_match() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 31L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 12L, now());
+        book.add(buyMarketOrder, quote);
+
+        //when
+        var result = book.add(sellMarketOrder, quote);
+
+        //then
+        assertThat(result).isEmpty();
+        assertThat(book.contains(buyMarketOrder)).isTrue();
+        assertThat(book.contains(sellMarketOrder)).isTrue();
+    }
+
+    @Test
+    void should_fail_on_match_for_two_buy_market_orders() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyMarketOrder1 = aBuyMarketOrder(instrument.id, 20L);
+        var buyMarketOrder2 = aBuyMarketOrder(instrument.id, 20L);
+
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 12L, now());
+        book.add(buyMarketOrder1, quote);
+
+        //when
+        var result = book.add(buyMarketOrder2, quote);
+
+        //then
+        assertThat(result).isEmpty();
+        assertThat(book.contains(buyMarketOrder1)).isTrue();
+        assertThat(book.contains(buyMarketOrder2)).isTrue();
+    }
+
+    @Test
+    void should_fail_on_match_for_two_sell_market_orders() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var sellMarketOrder1 = aSellMarketOrder(instrument.id, 30L);
+        var sellMarketOrder2 = aSellMarketOrder(instrument.id, 30L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 12L, now());
+        book.add(sellMarketOrder1, quote);
+
+        //when
+        var result = book.add(sellMarketOrder2, quote);
+
+        //then
+        assertThat(result).isEmpty();
+        assertThat(book.contains(sellMarketOrder1)).isTrue();
+        assertThat(book.contains(sellMarketOrder2)).isTrue();
+    }
+
 }

@@ -32,30 +32,25 @@ public class RegularInstrumentBook implements InstrumentBook{
             throw new IllegalArgumentException("Order %s has incorrect instrument id %s".formatted(order.id, order.instrumentId));
         }
 
-        final var book = order.type == BUY ? sellBook.values() : buyBook.values();
-
-        if(order.price.isPresent() && !triggerPrice(order, quote)) {
+        if(!triggerPrice(order, quote)) {
             addToBook(order);
             return empty();
         }
 
-        final var maybeMatch = book.stream().filter(o -> {
-
-            if(!o.quantity.equals(order.quantity)) {
-                return false;
-            }
-
-            if(o.price.isPresent() && !triggerPrice(o, quote)) {
-                return false;
-            }
-
-            return true;
-
-        }).findFirst();
+        final var maybeMatch = (order.type == BUY ? sellBook.values() : buyBook.values())
+                .stream()
+                .filter(o -> o.quantity.equals(order.quantity) && triggerPrice(o, quote))
+                .findAny();
 
         if(maybeMatch.isPresent()) {
             removeFromBook(maybeMatch.orElseThrow());
-            return Optional.of(new Trade());
+            return Optional.of(
+                    new Trade(
+                            order.type == BUY ? order : maybeMatch.orElseThrow(),
+                            order.type == SELL ? order : maybeMatch.orElseThrow(),
+                            quote
+                    )
+            );
         } else {
             addToBook(order);
             return empty();
@@ -65,6 +60,10 @@ public class RegularInstrumentBook implements InstrumentBook{
     @Override
     public boolean cancel(Order order) {
         return getBook(order).remove(order.id, order);
+    }
+
+    boolean contains(Order order) {
+        return getBook(order).containsKey(order.id);
     }
 
     private void addToBook(Order order) {
@@ -79,7 +78,7 @@ public class RegularInstrumentBook implements InstrumentBook{
         return order.type == BUY ? buyBook : sellBook;
     }
 
-    public static boolean triggerPrice(Order order, Quote quote) {
+    static boolean triggerPrice(Order order, Quote quote) {
         requireNonNull(order);
         requireNonNull(quote);
 
@@ -97,6 +96,5 @@ public class RegularInstrumentBook implements InstrumentBook{
 
         return false;
     }
-
 
 }

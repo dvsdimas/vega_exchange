@@ -6,7 +6,7 @@ public interface OrderService {
 
     void add(Order order);
 
-    void cancel(Order order);
+    boolean cancel(Order order);
 
 }
 

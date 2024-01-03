@@ -136,6 +136,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyMarketOrder, sellMarketOrder, quote));
+        assertThat(book.contains(buyMarketOrder)).isFalse();
+        assertThat(book.contains(sellMarketOrder)).isFalse();
     }
 
     @Test
@@ -155,6 +157,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyMarketOrder, sellMarketOrder, quote));
+        assertThat(book.contains(buyMarketOrder)).isFalse();
+        assertThat(book.contains(sellMarketOrder)).isFalse();
     }
 
     @Test
@@ -174,6 +178,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyMarketOrder, sellLimitOrder, quote));
+        assertThat(book.contains(buyMarketOrder)).isFalse();
+        assertThat(book.contains(sellLimitOrder)).isFalse();
     }
 
     @Test
@@ -193,6 +199,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyLimitOrder, sellMarketOrder, quote));
+        assertThat(book.contains(buyLimitOrder)).isFalse();
+        assertThat(book.contains(sellMarketOrder)).isFalse();
     }
 
     @Test
@@ -212,6 +220,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyLimitOrder, sellLimitOrder, quote));
+        assertThat(book.contains(buyLimitOrder)).isFalse();
+        assertThat(book.contains(sellLimitOrder)).isFalse();
     }
 
     @Test
@@ -231,6 +241,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyLimitOrder, sellLimitOrder, quote));
+        assertThat(book.contains(buyLimitOrder)).isFalse();
+        assertThat(book.contains(sellLimitOrder)).isFalse();
     }
 
     @Test
@@ -250,6 +262,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyLimitOrder, sellMarketOrder, quote));
+        assertThat(book.contains(buyLimitOrder)).isFalse();
+        assertThat(book.contains(sellMarketOrder)).isFalse();
     }
 
     @Test
@@ -269,6 +283,8 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyMarketOrder, sellLimitOrder, quote));
+        assertThat(book.contains(buyMarketOrder)).isFalse();
+        assertThat(book.contains(sellLimitOrder)).isFalse();
     }
 
     @Test

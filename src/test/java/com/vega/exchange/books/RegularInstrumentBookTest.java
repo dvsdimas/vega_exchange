@@ -39,10 +39,10 @@ public class RegularInstrumentBookTest implements Helper {
     }
 
     @Test
-    void should_fail_for_buy_limit_order_with_low_price() {
+    void should_fail_for_buy_limit_order_with_high_price() {
         //given
-        var order = aBuyLimitOrder(10L, 19L);
-        var quote = new Quote(randomUUID(), 20L, now());
+        var order = aBuyLimitOrder(10L, 20L);
+        var quote = new Quote(randomUUID(), 21L, now());
 
         //when
         var result = triggerPrice(order, quote);
@@ -120,7 +120,7 @@ public class RegularInstrumentBookTest implements Helper {
     }
 
     @Test
-    void should_produce_trade_on_match_for_buy_market_order() {
+    void should_produce_trade_on_match_for_buy_market_order_against_sell_market_order() {
         //given
         var instrument = aRegularInstrument(randomUUID());
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
@@ -139,14 +139,14 @@ public class RegularInstrumentBookTest implements Helper {
     }
 
     @Test
-    void should_produce_trade_on_match_for_sell_market_order() {
+    void should_produce_trade_on_match_for_sell_market_order_against_buy_market_order() {
         //given
         var instrument = aRegularInstrument(randomUUID());
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
 
         var book = new RegularInstrumentBook(instrument);
-        var quote = new Quote(buyMarketOrder.instrumentId, 12L, now());
+        var quote = new Quote(instrument.id, 12L, now());
         book.add(buyMarketOrder, quote);
 
         //when
@@ -155,6 +155,82 @@ public class RegularInstrumentBookTest implements Helper {
         //then
         assertThat(result).isPresent();
         assertThat(result).contains(new Trade(buyMarketOrder, sellMarketOrder, quote));
+    }
+
+    @Test
+    void should_produce_trade_on_match_for_buy_market_order_against_sell_limit_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
+        var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 26L, now());
+        book.add(sellLimitOrder, quote);
+
+        //when
+        var result = book.add(buyMarketOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyMarketOrder, sellLimitOrder, quote));
+    }
+
+    @Test
+    void should_produce_trade_on_match_for_sell_market_order_against_buy_limit_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 26L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 26L, now());
+        book.add(buyLimitOrder, quote);
+
+        //when
+        var result = book.add(sellMarketOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyLimitOrder, sellMarketOrder, quote));
+    }
+
+    @Test
+    void should_produce_trade_on_match_for_buy_limit_order_against_sell_limit_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
+        var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 25L, now());
+        book.add(sellLimitOrder, quote);
+
+        //when
+        var result = book.add(buyLimitOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyLimitOrder, sellLimitOrder, quote));
+    }
+
+    @Test
+    void should_produce_trade_on_match_for_sell_limit_order_against_buy_limit_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
+        var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(instrument.id, 25L, now());
+        book.add(buyLimitOrder, quote);
+
+        //when
+        var result = book.add(sellLimitOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyLimitOrder, sellLimitOrder, quote));
     }
 
 }

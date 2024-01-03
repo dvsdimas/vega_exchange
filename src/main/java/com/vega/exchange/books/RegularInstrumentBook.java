@@ -90,7 +90,7 @@ public class RegularInstrumentBook implements InstrumentBook{
             return true;
         }
 
-        if( (order.type == SELL) && (order.price.orElseThrow() < quote.price()) ) {
+        if( (order.type == SELL) && (order.price.orElseThrow() <= quote.price()) ) {
             return true;
         }
 

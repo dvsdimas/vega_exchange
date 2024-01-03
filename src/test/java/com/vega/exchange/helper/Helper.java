@@ -38,6 +38,14 @@ public interface Helper {
         return new Order(randomUUID(), SELL, randomUUID(), randomUUID(), amount, Optional.of(price), empty());
     }
 
+    default Order aBuyLimitOrder(UUID instrumentId, Long amount, Long price) {
+        return new Order(randomUUID(), BUY, instrumentId, randomUUID(), amount, Optional.of(price), empty());
+    }
+
+    default Order aSellLimitOrder(UUID instrumentId, Long amount, Long price) {
+        return new Order(randomUUID(), SELL, instrumentId, randomUUID(), amount, Optional.of(price), empty());
+    }
+
     default Instrument aRegularInstrument() {
         return new Instrument(randomUUID(), "symbol", REGULAR);
     }

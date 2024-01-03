@@ -2,18 +2,24 @@ package com.vega.exchange.services;
 
 import com.vega.exchange.books.InstrumentBook;
 import com.vega.exchange.books.RegularInstrumentBook;
+import com.vega.exchange.instruments.CompositeInstrument;
 import com.vega.exchange.orders.ExecutionResult;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.trades.Trade;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
+import static java.util.UUID.randomUUID;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toSet;
 
 public class InMemoryOrderService implements OrderService {
 
@@ -43,12 +49,40 @@ public class InMemoryOrderService implements OrderService {
 
         }
 
+        final var results = compositeToRegularOrders((CompositeInstrument) instrument, order)
+                .stream()
+                .collect(Collectors.toUnmodifiableMap(identity(), this::add));
 
-        // todo handle composite orders   !!!!!!!
+        final var trades = results.values()
+                .stream()
+                .filter(Optional::isPresent)
+                .map(val -> val.orElseThrow().trades.stream().findFirst().orElseThrow())
+                .collect(toSet());
+
+        if(results.size() == trades.size()) {
+            return Optional.of(new ExecutionResult(order, trades));
+        }
+
+
+        // todo handle composite orders partial completion   !!!!!!!
 
 
 
         return empty();
+    }
+
+    private static Collection<Order> compositeToRegularOrders(CompositeInstrument compositeInstrument, Order order) {
+        return compositeInstrument.instruments
+                .stream()
+                .map(i -> new Order(
+                        randomUUID(),
+                        order.type,
+                        i.id,
+                        order.traderId,
+                        order.quantity,
+                        order.price,
+                        Optional.of(order.id)))
+                .collect(Collectors.toList());
     }
 
     private Optional<Trade> addRegularOrder(Order order) {

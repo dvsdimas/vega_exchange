@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
+import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InMemoryOrderServiceTest implements Helper {
@@ -157,5 +159,53 @@ public class InMemoryOrderServiceTest implements Helper {
         //then
         assertThat(result2).isEmpty();
     }
+
+    @Test
+    void should_match_composite_buy_market_order_with_sell_market_orders() {
+        //given
+        var instrument1 = aRegularInstrument(randomUUID());
+        var instrument2 = aRegularInstrument(randomUUID());
+        var instrument3 = aRegularInstrument(randomUUID());
+        var compositeInstrument = aCompositeInstrument(randomUUID(), Set.of(instrument1, instrument2, instrument3));
+        var register = anInstrumentsRegister(List.of(compositeInstrument, instrument1, instrument2, instrument3));
+        var quote1 = new Quote(instrument1.id, 19L, now());
+        var quote2 = new Quote(instrument2.id, 34L, now());
+        var quote3 = new Quote(instrument3.id, 22L, now());
+        var quoting = aQuoting(
+                Map.of(
+                        instrument1.id, quote1,
+                        instrument2.id, quote2,
+                        instrument3.id, quote3));
+        var orderService = new InMemoryOrderService(register, quoting);
+        var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L);
+        var sellMarketOrder1 = aSellMarketOrder(instrument1.id, 30L);
+        var sellMarketOrder2 = aSellMarketOrder(instrument2.id, 30L);
+        var sellMarketOrder3 = aSellMarketOrder(instrument3.id, 30L);
+
+        orderService.add(sellMarketOrder1);
+        orderService.add(sellMarketOrder2);
+        orderService.add(sellMarketOrder3);
+
+        //when
+        var result = orderService.add(compositeBuyMarketOrder);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result.orElseThrow().order).isEqualTo(compositeBuyMarketOrder);
+        assertThat(result.orElseThrow().trades).size().isEqualTo(3);
+
+        var trades = result.orElseThrow().trades
+                .stream()
+                .collect(Collectors.toMap(trade -> trade.quote().instrumentId(), identity()));
+
+        assertThat(trades.get(instrument1.id).sellOrder()).isEqualTo(sellMarketOrder1);
+        assertThat(trades.get(instrument2.id).sellOrder()).isEqualTo(sellMarketOrder2);
+        assertThat(trades.get(instrument3.id).sellOrder()).isEqualTo(sellMarketOrder3);
+
+        assertThat(trades.get(instrument1.id).quote()).isEqualTo(quote1);
+        assertThat(trades.get(instrument2.id).quote()).isEqualTo(quote2);
+        assertThat(trades.get(instrument3.id).quote()).isEqualTo(quote3);
+    }
+
 
 }

@@ -5,6 +5,7 @@ import com.vega.exchange.services.InstrumentsRegister;
 import com.vega.exchange.services.Quoting;
 import com.vega.exchange.services.StaticQuoting;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.Thread.sleep;
@@ -28,7 +29,7 @@ public class Main {
 
     private static InstrumentsRegister initInstrumentsRegister() {
         // todo
-        return new StaticInstrumentsRegister(Map.of());
+        return new StaticInstrumentsRegister(List.of());
     }
 
     private static void awaitTermination() {

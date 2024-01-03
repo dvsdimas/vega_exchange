@@ -1,8 +1,15 @@
 package com.vega.exchange.helper;
 
 import com.vega.exchange.instruments.Instrument;
+import com.vega.exchange.instruments.Quote;
 import com.vega.exchange.orders.Order;
+import com.vega.exchange.services.InstrumentsRegister;
+import com.vega.exchange.services.Quoting;
+import com.vega.exchange.services.StaticInstrumentsRegister;
+import com.vega.exchange.services.StaticQuoting;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,6 +59,14 @@ public interface Helper {
 
     default Instrument aRegularInstrument(UUID id) {
         return new Instrument(id, "symbol", REGULAR);
+    }
+
+    default InstrumentsRegister anInstrumentsRegister(Collection<Instrument> instruments) {
+        return new StaticInstrumentsRegister(instruments);
+    }
+
+    default Quoting aQuoting(Map<UUID, Quote> prices) {
+        return new StaticQuoting(prices);
     }
 
 }

@@ -1,8 +1,10 @@
 package com.vega.exchange.orders;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 
@@ -35,5 +37,24 @@ public class Order {
         this.quantity = requireNonNull(quantity);
         this.price = empty();
         this.parentId = empty();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final var order = (Order) o;
+        return Objects.equals(id, order.id) &&
+                type == order.type &&
+                Objects.equals(instrumentId, order.instrumentId) &&
+                Objects.equals(traderId, order.traderId) &&
+                Objects.equals(quantity, order.quantity) &&
+                Objects.equals(price, order.price) &&
+                Objects.equals(parentId, order.parentId);
+    }
+
+    @Override
+    public int hashCode() {
+        return hash(id, type, instrumentId, traderId, quantity, price, parentId);
     }
 }

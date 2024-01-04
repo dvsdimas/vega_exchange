@@ -3,6 +3,7 @@ package com.vega.exchange.helper;
 import com.vega.exchange.instruments.CompositeInstrument;
 import com.vega.exchange.instruments.Instrument;
 import com.vega.exchange.instruments.Quote;
+import com.vega.exchange.orders.MatchResult;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.services.InstrumentsRegister;
 import com.vega.exchange.services.Quoting;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static com.vega.exchange.instruments.InstrumentType.REGULAR;
 import static com.vega.exchange.orders.OrderType.BUY;
@@ -37,6 +39,14 @@ public interface Helper {
 
     default Order aSellMarketOrder(UUID instrumentId, Long amount) {
         return new Order(randomUUID(), SELL, instrumentId, randomUUID(), amount);
+    }
+
+    default Order aBuyMarketOrder(UUID instrumentId, Long amount, Consumer<MatchResult> callBack) {
+        return new Order(randomUUID(), BUY, instrumentId, randomUUID(), amount, empty(), empty(), Optional.of(callBack));
+    }
+
+    default Order aSellMarketOrder(UUID instrumentId, Long amount, Consumer<MatchResult> callBack) {
+        return new Order(randomUUID(), SELL, instrumentId, randomUUID(), amount, empty(), empty(), Optional.of(callBack));
     }
 
     default Order aBuyLimitOrder(Long amount, Long price) {

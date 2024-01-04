@@ -3,17 +3,19 @@ package com.vega.exchange.services;
 import com.vega.exchange.books.InstrumentBook;
 import com.vega.exchange.books.RegularInstrumentBook;
 import com.vega.exchange.instruments.CompositeInstrument;
+import com.vega.exchange.orders.CompositeOrderContainer;
 import com.vega.exchange.orders.MatchResult;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.trades.Trade;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
@@ -26,6 +28,7 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
     private final InstrumentsRegister register;
     private final Quoting quoting;
     private final Map<UUID, InstrumentBook> instrumentBooks = new ConcurrentHashMap<>();
+    private final Map<UUID, CompositeOrderContainer> awaitingCompositeOrders = new ConcurrentHashMap<>();
 
     public InMemoryOrdersMatcher(InstrumentsRegister register, Quoting quoting) {
         this.register = requireNonNull(register);
@@ -42,15 +45,47 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
             final var maybeTrade = addRegularOrder(order);
 
             if(maybeTrade.isPresent()) {
+
+                completeCompositeOrderByTrade(maybeTrade.orElseThrow());
+
                 return Optional.of(new MatchResult(order, Set.of(maybeTrade.orElseThrow())));
-            } else {
-                return empty();
             }
 
+            return empty();
         }
 
-        final var results = compositeToRegularOrders((CompositeInstrument) instrument, order)
-                .stream()
+        return addCompositeOrder((CompositeInstrument) instrument, order);
+    }
+
+    private void completeCompositeOrderByTrade(Trade trade) {
+
+        final var notifyOrderContainers = new HashSet<CompositeOrderContainer>();
+
+        Stream.of(trade.buyOrder(), trade.sellOrder())
+                .filter(o -> o.parentId.isPresent())
+                .map(o -> o.parentId.orElseThrow())
+                .forEach(parentId -> awaitingCompositeOrders.computeIfPresent(parentId, (key, val) -> {
+
+                    final var newContainer = val.addCompletedTrade(trade);
+
+                    if(newContainer.completed()) {
+                        notifyOrderContainers.add(newContainer);
+                        return null; // delete key
+                    }
+
+                    return newContainer; // replace key
+                }));
+
+        notifyOrderContainers.forEach(container ->
+                container.compositeOrder.callBack.ifPresent(callback ->
+                        callback.accept(new MatchResult(container.compositeOrder, container.completedTrades))));
+    }
+
+    private Optional<MatchResult> addCompositeOrder(CompositeInstrument compositeInstrument, Order compositeOrder) {
+
+        final var partialOrders = compositeToRegularOrders(compositeInstrument, compositeOrder);
+
+        final var results = partialOrders.stream()
                 .collect(Collectors.toUnmodifiableMap(identity(), this::add));
 
         final var trades = results.values()
@@ -59,19 +94,18 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
                 .map(val -> val.orElseThrow().trades.stream().findFirst().orElseThrow())
                 .collect(toSet());
 
-        if(results.size() == trades.size()) {
-            return Optional.of(new MatchResult(order, trades));
+        trades.forEach(this::completeCompositeOrderByTrade);
+
+        if(partialOrders.size() == trades.size()) {
+            return Optional.of(new MatchResult(compositeOrder, trades));
         }
 
-
-        // todo handle composite orders partial completion   !!!!!!!
-
-
+        awaitingCompositeOrders.put(compositeOrder.id, new CompositeOrderContainer(compositeOrder, partialOrders, trades));
 
         return empty();
     }
 
-    private static Collection<Order> compositeToRegularOrders(CompositeInstrument compositeInstrument, Order order) {
+    private static Set<Order> compositeToRegularOrders(CompositeInstrument compositeInstrument, Order order) {
         return compositeInstrument.instruments
                 .stream()
                 .map(i -> new Order(
@@ -82,7 +116,7 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
                         order.quantity,
                         order.price,
                         Optional.of(order.id)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     private Optional<Trade> addRegularOrder(Order order) {

@@ -120,6 +120,22 @@ public class RegularInstrumentBookTest implements Helper {
     }
 
     @Test
+    void should_cancel_order() {
+        //given
+        var order = aSellMarketOrder(10L);
+        var instrument = aRegularInstrument(order.instrumentId);
+        var book = new RegularInstrumentBook(instrument);
+        book.add(order, new Quote(order.instrumentId, 12L, now()));
+
+        //when
+        var result = book.cancel(order);
+
+        //then
+        assertThat(result).isTrue();
+        assertThat(book.contains(order)).isFalse();
+    }
+
+    @Test
     void should_produce_trade_on_match_for_buy_market_order_against_sell_market_order() {
         //given
         var instrument = aRegularInstrument(randomUUID());

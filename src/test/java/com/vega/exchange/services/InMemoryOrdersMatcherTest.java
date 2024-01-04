@@ -20,6 +20,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class InMemoryOrdersMatcherTest implements Helper {
 
     @Test
+    void should_cancel_regular_order() {
+        //given
+        var instrument = aRegularInstrument(randomUUID());
+        var register = anInstrumentsRegister(List.of(instrument));
+        var quote = new Quote(instrument.id, 26L, now());
+        var quoting = aQuoting(Map.of(instrument.id, quote));
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
+        ordersMatcher.add(buyMarketOrder);
+
+        //when
+        var result = ordersMatcher.cancel(buyMarketOrder);
+
+        //then
+        assertThat(result).isTrue();
+    }
+
+    @Test
     void should_not_match_buy_market_order_in_case_if_empty() {
         //given
         var instrument = aRegularInstrument(randomUUID());
@@ -260,6 +278,63 @@ public class InMemoryOrdersMatcherTest implements Helper {
         assertThat(trades.get(instrument1.id).quote()).isEqualTo(quote1);
         assertThat(trades.get(instrument2.id).quote()).isEqualTo(quote2);
         assertThat(trades.get(instrument3.id).quote()).isEqualTo(quote3);
+    }
+
+    @Test
+    void should_cancel_awaiting_composite_buy_market_order_without_partial_execution() {
+        //given
+        var instrument1 = aRegularInstrument(randomUUID());
+        var instrument2 = aRegularInstrument(randomUUID());
+        var instrument3 = aRegularInstrument(randomUUID());
+        var compositeInstrument = aCompositeInstrument(randomUUID(), Set.of(instrument1, instrument2, instrument3));
+        var register = anInstrumentsRegister(List.of(compositeInstrument, instrument1, instrument2, instrument3));
+        var quote1 = new Quote(instrument1.id, 19L, now());
+        var quote2 = new Quote(instrument2.id, 34L, now());
+        var quote3 = new Quote(instrument3.id, 22L, now());
+        var quoting = aQuoting(
+                Map.of(
+                        instrument1.id, quote1,
+                        instrument2.id, quote2,
+                        instrument3.id, quote3));
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
+        var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L);
+        ordersMatcher.add(compositeBuyMarketOrder);
+
+        //when
+        var result = ordersMatcher.cancel(compositeBuyMarketOrder);
+
+        //then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void should_fail_to_cancel_composite_buy_market_order_if_partially_executed() {
+        //given
+        var instrument1 = aRegularInstrument(randomUUID());
+        var instrument2 = aRegularInstrument(randomUUID());
+        var instrument3 = aRegularInstrument(randomUUID());
+        var compositeInstrument = aCompositeInstrument(randomUUID(), Set.of(instrument1, instrument2, instrument3));
+        var register = anInstrumentsRegister(List.of(compositeInstrument, instrument1, instrument2, instrument3));
+        var quote1 = new Quote(instrument1.id, 19L, now());
+        var quote2 = new Quote(instrument2.id, 34L, now());
+        var quote3 = new Quote(instrument3.id, 22L, now());
+        var quoting = aQuoting(
+                Map.of(
+                        instrument1.id, quote1,
+                        instrument2.id, quote2,
+                        instrument3.id, quote3));
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
+        var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L);
+        var sellMarketOrder1 = aSellMarketOrder(instrument1.id, 30L);
+
+        ordersMatcher.add(sellMarketOrder1);
+        ordersMatcher.add(compositeBuyMarketOrder);
+
+        //when
+        var result = ordersMatcher.cancel(compositeBuyMarketOrder);
+
+        //then
+        assertThat(result).isFalse();
     }
 
 }

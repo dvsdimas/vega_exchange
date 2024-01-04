@@ -135,13 +135,33 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
     @Override
     public boolean cancel(Order order) {
 
-        if(!instrumentBooks.containsKey(order.instrumentId)) {
+        final var instrument = register.getInstrument(order.instrumentId);
+
+        if(instrument.tradable()) {
+
+            if(!instrumentBooks.containsKey(order.instrumentId)) {
+                return false;
+            }
+
+            return instrumentBooks.get(order.instrumentId).cancel(order);
+        }
+
+        if(!awaitingCompositeOrders.containsKey(order.id)) {
             return false;
         }
 
-        return instrumentBooks.get(order.instrumentId).cancel(order);
 
-//        todo handle composite case
+        final var container = awaitingCompositeOrders.get(order.id);
+
+        if(!container.completedTrades.isEmpty()) { // cannot cancel, already partially executed
+            return false;
+        }
+
+        container.partialOrders.forEach(this::cancel);
+
+        awaitingCompositeOrders.remove(order.id, container);
+
+        return true;
     }
 
 }

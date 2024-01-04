@@ -22,7 +22,7 @@ public class CompositeOrderContainer {
         this.completedTrades = requireNonNull(completedTrades);
     }
 
-    public CompositeOrderContainer addCompletedTrade(Trade trade) { // todo tests
+    public CompositeOrderContainer addCompletedTrade(Trade trade) {
         requireNonNull(trade);
 
         final var trades = Stream.concat(completedTrades.stream(), Stream.of(trade)).collect(Collectors.toSet());
@@ -30,7 +30,7 @@ public class CompositeOrderContainer {
         return new CompositeOrderContainer(compositeOrder, partialOrders, trades);
     }
 
-    public boolean completed() { // todo tests
+    public boolean completed() {
         return partialOrders.size() == completedTrades.size();
     }
 

@@ -26,11 +26,11 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 26L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
 
         //when
-        var result = orderService.add(buyMarketOrder);
+        var result = ordersMatcher.add(buyMarketOrder);
 
         //then
         assertThat(result).isEmpty();
@@ -43,11 +43,11 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 26L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
 
         //when
-        var result = orderService.add(sellMarketOrder);
+        var result = ordersMatcher.add(sellMarketOrder);
 
         //then
         assertThat(result).isEmpty();
@@ -60,7 +60,7 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 19L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
         var expectedResult = new MatchResult(
@@ -68,13 +68,13 @@ public class InMemoryOrdersMatcherTest implements Helper {
                 Set.of(new Trade(buyMarketOrder, sellMarketOrder, quote)));
 
         //when
-        var result1 = orderService.add(sellMarketOrder);
+        var result1 = ordersMatcher.add(sellMarketOrder);
 
         //then
         assertThat(result1).isEmpty();
 
         //when
-        var result2 = orderService.add(buyMarketOrder);
+        var result2 = ordersMatcher.add(buyMarketOrder);
 
         //then
         assertThat(result2).isPresent();
@@ -88,7 +88,7 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 33L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 19L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 19L);
         var expectedResult = new MatchResult(
@@ -96,13 +96,13 @@ public class InMemoryOrdersMatcherTest implements Helper {
                 Set.of(new Trade(buyMarketOrder, sellMarketOrder, quote)));
 
         //when
-        var result1 = orderService.add(buyMarketOrder);
+        var result1 = ordersMatcher.add(buyMarketOrder);
 
         //then
         assertThat(result1).isEmpty();
 
         //when
-        var result2 = orderService.add(sellMarketOrder);
+        var result2 = ordersMatcher.add(sellMarketOrder);
 
         //then
         assertThat(result2).isPresent();
@@ -116,18 +116,18 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var register = anInstrumentsRegister(List.of(instrument));
         var quote = new Quote(instrument.id, 19L, now());
         var quoting = aQuoting(Map.of(instrument.id, quote));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 31L);
 
         //when
-        var result1 = orderService.add(sellMarketOrder);
+        var result1 = ordersMatcher.add(sellMarketOrder);
 
         //then
         assertThat(result1).isEmpty();
 
         //when
-        var result2 = orderService.add(buyMarketOrder);
+        var result2 = ordersMatcher.add(buyMarketOrder);
 
         //then
         assertThat(result2).isEmpty();
@@ -144,18 +144,18 @@ public class InMemoryOrdersMatcherTest implements Helper {
         var quoting = aQuoting(
                 Map.of(instrument1.id, quote1,
                         instrument2.id, quote2));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var buyMarketOrder = aBuyMarketOrder(instrument1.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument2.id, 30L);
 
         //when
-        var result1 = orderService.add(sellMarketOrder);
+        var result1 = ordersMatcher.add(sellMarketOrder);
 
         //then
         assertThat(result1).isEmpty();
 
         //when
-        var result2 = orderService.add(buyMarketOrder);
+        var result2 = ordersMatcher.add(buyMarketOrder);
 
         //then
         assertThat(result2).isEmpty();
@@ -177,18 +177,18 @@ public class InMemoryOrdersMatcherTest implements Helper {
                         instrument1.id, quote1,
                         instrument2.id, quote2,
                         instrument3.id, quote3));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L);
         var sellMarketOrder1 = aSellMarketOrder(instrument1.id, 30L);
         var sellMarketOrder2 = aSellMarketOrder(instrument2.id, 30L);
         var sellMarketOrder3 = aSellMarketOrder(instrument3.id, 30L);
 
-        orderService.add(sellMarketOrder1);
-        orderService.add(sellMarketOrder2);
-        orderService.add(sellMarketOrder3);
+        ordersMatcher.add(sellMarketOrder1);
+        ordersMatcher.add(sellMarketOrder2);
+        ordersMatcher.add(sellMarketOrder3);
 
         //when
-        var result = orderService.add(compositeBuyMarketOrder);
+        var result = ordersMatcher.add(compositeBuyMarketOrder);
 
         //then
         assertThat(result).isPresent();
@@ -225,18 +225,18 @@ public class InMemoryOrdersMatcherTest implements Helper {
                         instrument1.id, quote1,
                         instrument2.id, quote2,
                         instrument3.id, quote3));
-        var orderService = new InMemoryOrdersMatcher(register, quoting);
+        var ordersMatcher = new InMemoryOrdersMatcher(register, quoting);
         var compositeBuyMarketOrder = aBuyMarketOrder(compositeInstrument.id, 30L, asyncResult::set);
         var sellMarketOrder1 = aSellMarketOrder(instrument1.id, 30L);
         var sellMarketOrder2 = aSellMarketOrder(instrument2.id, 30L);
         var sellMarketOrder3 = aSellMarketOrder(instrument3.id, 30L);
 
-        orderService.add(sellMarketOrder1);
-        orderService.add(sellMarketOrder2);
-        orderService.add(compositeBuyMarketOrder);
+        ordersMatcher.add(sellMarketOrder1);
+        ordersMatcher.add(sellMarketOrder2);
+        ordersMatcher.add(compositeBuyMarketOrder);
 
         //when
-        var result = orderService.add(sellMarketOrder3);
+        var result = ordersMatcher.add(sellMarketOrder3);
 
         //then
         assertThat(result).isPresent();
@@ -244,7 +244,6 @@ public class InMemoryOrdersMatcherTest implements Helper {
         assertThat(result.orElseThrow().trades).size().isEqualTo(1);
 
         // and
-
         final var matchResult = asyncResult.get();
         assertThat(matchResult).isNotNull();
         assertThat(matchResult.order).isEqualTo(compositeBuyMarketOrder);
@@ -262,6 +261,5 @@ public class InMemoryOrdersMatcherTest implements Helper {
         assertThat(trades.get(instrument2.id).quote()).isEqualTo(quote2);
         assertThat(trades.get(instrument3.id).quote()).isEqualTo(quote3);
     }
-
 
 }

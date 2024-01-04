@@ -64,7 +64,7 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
         Stream.of(trade.buyOrder(), trade.sellOrder())
                 .filter(o -> o.parentId.isPresent())
                 .map(o -> o.parentId.orElseThrow())
-                .forEach(parentId -> awaitingCompositeOrders.computeIfPresent(parentId, (key, val) -> {
+                .forEach(parentId -> awaitingCompositeOrders.computeIfPresent(parentId, (key, val) -> { // atomic
 
                     final var newContainer = val.addCompletedTrade(trade);
 

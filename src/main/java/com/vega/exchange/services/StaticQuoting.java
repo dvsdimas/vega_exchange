@@ -22,7 +22,7 @@ public class StaticQuoting implements Quoting {
             throw new IllegalArgumentException("Unsupported instrument %s".formatted(instrumentId));
         }
 
-        return prices.get(instrumentId);
+        return prices.get(instrumentId); // this is for test, in real system it will provide the best available market price
     }
 
 }

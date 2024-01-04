@@ -384,4 +384,28 @@ public class RegularInstrumentBookTest implements Helper {
         assertThat(book.contains(sellMarketOrder2)).isTrue();
     }
 
+    @Test
+    void should_produce_trade_on_match_for_buy_market_order_against_sell_market_order_and_skip_sell_limit_order() {
+        //given
+        var instrument = aRegularInstrument();
+        var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
+        var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
+        var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 13L);
+
+        var book = new RegularInstrumentBook(instrument);
+        var quote = new Quote(buyMarketOrder.instrumentId, 12L, now());
+        book.add(sellLimitOrder, quote);
+        book.add(sellMarketOrder, quote);
+
+        //when
+        var result = book.add(buyMarketOrder, quote);
+
+        //then
+        assertThat(result).isPresent();
+        assertThat(result).contains(new Trade(buyMarketOrder, sellMarketOrder, quote));
+        assertThat(book.contains(buyMarketOrder)).isFalse();
+        assertThat(book.contains(sellMarketOrder)).isFalse();
+        assertThat(book.contains(sellLimitOrder)).isTrue();
+    }
+
 }

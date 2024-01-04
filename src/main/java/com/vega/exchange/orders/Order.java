@@ -11,7 +11,7 @@ import static java.util.Optional.empty;
 
 public class Order {
 
-    public final UUID id;
+    public final UUID id; // use raw UUID instead of micro types, just for speed up
     public final OrderType type;
     public final UUID instrumentId;
     public final UUID traderId;
@@ -19,7 +19,7 @@ public class Order {
     public final Long quantity;
     public final Optional<Long> price;
     public final Optional<UUID> parentId;
-    public final Optional<Consumer<MatchResult>> callBack;
+    public final Optional<Consumer<MatchResult>> callBack; // can provide call for async update about composite order completion
 
     public Order(UUID id,
                  OrderType type,

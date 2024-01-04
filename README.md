@@ -30,3 +30,13 @@ Each order has a unique order ID, a trader ID, an order type (buy or sell),  pri
 * Trades happen at the best available market price.
 
 
+## Assumptions
+
+* Match happen for tradable orders only with the same amount 
+* no partial match
+* no multi to one match (it's valid, but will complete solution)
+* Quoting emulation fresh market data
+* Composite orders assumes that tradable orders will have the same amount as original composite order for each instrument
+
+
+## InMemoryOrdersMatcher contains exchange logic and InMemoryOrdersMatcherTest have proves that it works as expected

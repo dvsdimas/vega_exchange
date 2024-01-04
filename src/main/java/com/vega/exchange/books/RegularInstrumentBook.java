@@ -1,15 +1,15 @@
 package com.vega.exchange.books;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.vega.exchange.instruments.Instrument;
 import com.vega.exchange.instruments.Quote;
 import com.vega.exchange.orders.Order;
 import com.vega.exchange.trades.Trade;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.collect.Multimaps.synchronizedListMultimap;
 import static com.vega.exchange.orders.OrderType.BUY;
 import static com.vega.exchange.orders.OrderType.SELL;
 import static java.util.Objects.requireNonNull;
@@ -18,8 +18,8 @@ import static java.util.Optional.empty;
 public class RegularInstrumentBook implements InstrumentBook {
 
     private final Instrument instrument;
-    private final Map<UUID, Order> buyBook = new ConcurrentHashMap<>();
-    private final Map<UUID, Order> sellBook = new ConcurrentHashMap<>();
+    private final Multimap<Long, Order> buyBook = synchronizedListMultimap(ArrayListMultimap.create());
+    private final Multimap<Long, Order> sellBook = synchronizedListMultimap(ArrayListMultimap.create());
 
     public RegularInstrumentBook(Instrument instrument) {
         this.instrument = requireNonNull(instrument);
@@ -37,14 +37,15 @@ public class RegularInstrumentBook implements InstrumentBook {
             return empty();
         }
 
-        final var maybeMatch = (order.type == BUY ? sellBook.values() : buyBook.values())
+        final var maybeMatch = (order.type == BUY ? sellBook : buyBook)
+                .get(order.quantity)
                 .stream()
-                .filter(o -> o.quantity.equals(order.quantity) && triggerPrice(o, quote))
-                .findAny();
+                .filter(o -> triggerPrice(o, quote))
+                .findFirst();
 
         if(maybeMatch.isPresent()) {
 
-            if(!removeFromBook(maybeMatch.orElseThrow())) {
+            if(!removeFromBook(maybeMatch.orElseThrow())) { // someone still this match, retry
                 return add(order, quote);
             }
 
@@ -63,22 +64,25 @@ public class RegularInstrumentBook implements InstrumentBook {
 
     @Override
     public boolean cancel(Order order) {
-        return getBook(order).remove(order.id, order);
+        return getBook(order).remove(order.quantity, order);
     }
 
     boolean contains(Order order) {
-        return getBook(order).containsKey(order.id);
+        return getBook(order)
+                .get(order.quantity)
+                .stream()
+                .anyMatch(o -> o.equals(order));
     }
 
     private void addToBook(Order order) {
-        getBook(order).put(order.id, order);
+        getBook(order).put(order.quantity, order);
     }
 
     private boolean removeFromBook(Order order) {
-        return getBook(order).remove(order.id, order);
+        return getBook(order).remove(order.quantity, order);
     }
 
-    private Map<UUID, Order> getBook(Order order) {
+    private Multimap<Long, Order> getBook(Order order) {
         return order.type == BUY ? buyBook : sellBook;
     }
 

@@ -69,9 +69,6 @@ public interface Helper {
         return new Instrument(randomUUID(), "symbol", REGULAR);
     }
 
-    default Instrument aRegularInstrument(UUID id) {
-        return new Instrument(id, "symbol", REGULAR);
-    }
 
     default Instrument aCompositeInstrument(UUID id, Set<Instrument> instruments) {
         return new CompositeInstrument(id, "composite_symbol", instruments);

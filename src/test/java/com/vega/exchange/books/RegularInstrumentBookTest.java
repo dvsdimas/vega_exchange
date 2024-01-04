@@ -107,8 +107,8 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_pass_if_order_in_place() {
         //given
-        var order = aSellMarketOrder(10L);
-        var instrument = aRegularInstrument(order.instrumentId);
+        var instrument = aRegularInstrument();
+        var order = aSellMarketOrder(instrument.id, 10L);
         var book = new RegularInstrumentBook(instrument);
         book.add(order, new Quote(order.instrumentId, 12L, now()));
 
@@ -122,8 +122,8 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_cancel_order() {
         //given
-        var order = aSellMarketOrder(10L);
-        var instrument = aRegularInstrument(order.instrumentId);
+        var instrument = aRegularInstrument();
+        var order = aSellMarketOrder(instrument.id, 10L);
         var book = new RegularInstrumentBook(instrument);
         book.add(order, new Quote(order.instrumentId, 12L, now()));
 
@@ -138,7 +138,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_buy_market_order_against_sell_market_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
 
@@ -159,7 +159,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_sell_market_order_against_buy_market_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 30L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
 
@@ -180,7 +180,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_buy_market_order_against_sell_limit_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
         var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
 
@@ -201,7 +201,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_sell_market_order_against_buy_limit_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 26L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
 
@@ -222,7 +222,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_buy_limit_order_against_sell_limit_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
         var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
 
@@ -243,7 +243,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_sell_limit_order_against_buy_limit_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
         var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
 
@@ -264,7 +264,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_buy_limit_order_against_sell_market_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyLimitOrder = aBuyLimitOrder(instrument.id, 20L, 25L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 20L);
 
@@ -285,7 +285,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_produce_trade_on_match_for_sell_limit_order_against_buy_market_order() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
         var sellLimitOrder = aSellLimitOrder(instrument.id, 20L, 25L);
 
@@ -306,7 +306,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_fail_on_match_for_buy_market_order_against_sell_market_order_if_balance_not_match() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 20L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 21L);
 
@@ -326,7 +326,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_fail_trade_on_match_for_sell_market_order_against_buy_market_order_if_balance_not_match() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder = aBuyMarketOrder(instrument.id, 31L);
         var sellMarketOrder = aSellMarketOrder(instrument.id, 30L);
 
@@ -346,7 +346,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_fail_on_match_for_two_buy_market_orders() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var buyMarketOrder1 = aBuyMarketOrder(instrument.id, 20L);
         var buyMarketOrder2 = aBuyMarketOrder(instrument.id, 20L);
 
@@ -367,7 +367,7 @@ public class RegularInstrumentBookTest implements Helper {
     @Test
     void should_fail_on_match_for_two_sell_market_orders() {
         //given
-        var instrument = aRegularInstrument(randomUUID());
+        var instrument = aRegularInstrument();
         var sellMarketOrder1 = aSellMarketOrder(instrument.id, 30L);
         var sellMarketOrder2 = aSellMarketOrder(instrument.id, 30L);
 

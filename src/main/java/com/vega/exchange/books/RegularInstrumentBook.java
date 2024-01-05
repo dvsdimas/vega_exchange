@@ -32,34 +32,33 @@ public class RegularInstrumentBook implements InstrumentBook {
             throw new IllegalArgumentException("Order %s has incorrect instrument id %s".formatted(order.id, order.instrumentId));
         }
 
-        if(!triggerPrice(order, quote)) {
-            addToBook(order);
-            return empty();
-        }
+        if(triggerPrice(order, quote)) {
 
-        final var maybeMatch = (order.type == BUY ? sellBook : buyBook)
-                .get(order.quantity)
-                .stream()
-                .filter(o -> triggerPrice(o, quote))
-                .findFirst();
+            final var maybeMatch = (order.type == BUY ? sellBook : buyBook)
+                    .get(order.quantity)
+                    .stream()
+                    .filter(o -> triggerPrice(o, quote))
+                    .findFirst();
 
-        if(maybeMatch.isPresent()) {
+            if(maybeMatch.isPresent()) {
 
-            if(!removeFromBook(maybeMatch.orElseThrow())) { // someone still this match, retry
-                return add(order, quote);
+                final var matched = maybeMatch.orElseThrow();
+
+                if(!removeFromBook(matched)) { // someone steal this match, retry
+                    return add(order, quote);
+                }
+
+                return Optional.of(new Trade(
+                        order.type == BUY ? order : matched,
+                        order.type == SELL ? order : matched,
+                        quote)
+                );
             }
-
-            return Optional.of(
-                    new Trade(
-                            order.type == BUY ? order : maybeMatch.orElseThrow(),
-                            order.type == SELL ? order : maybeMatch.orElseThrow(),
-                            quote
-                    )
-            );
-        } else {
-            addToBook(order);
-            return empty();
         }
+
+        addToBook(order);
+        return empty();
+
     }
 
     @Override

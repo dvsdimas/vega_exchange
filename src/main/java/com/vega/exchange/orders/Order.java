@@ -19,7 +19,7 @@ public class Order {
     public final Long quantity;
     public final Optional<Long> price;
     public final Optional<UUID> parentId;
-    public final Optional<Consumer<MatchResult>> callBack; // can provide call for async update about composite order completion
+    public final Optional<Consumer<MatchResult>> callBack; // can provide callback for async update about composite order completion
 
     public Order(UUID id,
                  OrderType type,

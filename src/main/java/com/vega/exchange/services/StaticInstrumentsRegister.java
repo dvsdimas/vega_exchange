@@ -5,10 +5,10 @@ import com.vega.exchange.instruments.Instrument;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 public class StaticInstrumentsRegister implements InstrumentsRegister {
 
@@ -17,7 +17,7 @@ public class StaticInstrumentsRegister implements InstrumentsRegister {
     public StaticInstrumentsRegister(Collection<Instrument> instruments) {
         this.instruments = requireNonNull(instruments)
                 .stream()
-                .collect(Collectors.toMap(instrument -> instrument.id , identity()));
+                .collect(toMap(instrument -> instrument.id , identity()));
     }
 
     @Override

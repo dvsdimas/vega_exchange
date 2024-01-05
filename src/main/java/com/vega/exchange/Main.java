@@ -20,7 +20,7 @@ public class Main {
 
         final var register = initInstrumentsRegister();
 
-        var ordersMatcher = initOrdersMatcher(register, quoting);
+        final var ordersMatcher = initOrdersMatcher(register, quoting);
 
         // then matcher could handle user's request
 

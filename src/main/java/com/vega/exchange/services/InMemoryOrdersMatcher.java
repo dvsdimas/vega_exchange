@@ -46,9 +46,11 @@ public class InMemoryOrdersMatcher implements OrdersMatcher {
 
             if(maybeTrade.isPresent()) {
 
-                completeCompositeOrderByTrade(maybeTrade.orElseThrow());
+                final var trade = maybeTrade.orElseThrow();
 
-                return Optional.of(new MatchResult(order, Set.of(maybeTrade.orElseThrow())));
+                completeCompositeOrderByTrade(trade);
+
+                return Optional.of(new MatchResult(order, Set.of(trade)));
             }
 
             return empty();
